@@ -49,16 +49,20 @@ const Header: React.FC = () => {
   };
 
   // Navigation items based on auth state
-  const navigationItems: NavigationItem[] = user ? [
-    { path: '/', label: 'Dashboard' },
-    { path: '/predict', label: 'Assessment' },
-    { path: '/profile', label: 'History', state: { activeTab: 'history' } },
-    { path: '/about', label: 'About' }
-  ] : [
-    { path: '/', label: 'Home', icon: Home },
-    { path: '/about', label: 'About' },
-    { path: '/contact', label: 'Contact' }
-  ];
+  const navigationItems: NavigationItem[] = user ? 
+    user.role === 'doctor' ? [
+      { path: '/doctor', label: 'Dashboard' },
+      { path: '/about', label: 'About' }
+    ] : [
+      { path: '/', label: 'Dashboard' },
+      { path: '/predict', label: 'Assessment' },
+      { path: '/profile', label: 'History', state: { activeTab: 'history' } },
+      { path: '/about', label: 'About' }
+    ] : [
+      { path: '/', label: 'Home', icon: Home },
+      { path: '/about', label: 'About' },
+      { path: '/contact', label: 'Contact' }
+    ];
 
   return (
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-200">

@@ -9,6 +9,7 @@ import PredictionForm from './components/PredictionForm';
 import AuthPage from './pages/AuthPage';
 import ProfilePage from './pages/ProfilePage';
 import AdminPage from './pages/AdminPage';
+import DoctorPage from './pages/DoctorPage';
 import { useAuthStore } from './stores/authStore';
 
 const App: React.FC = () => {
@@ -26,6 +27,8 @@ const App: React.FC = () => {
           <Route path="/" element={<Home />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/doctor" element={<DoctorPage />} />
+          <Route path="/doctor/patient/:patientId" element={<DoctorPage />} />
           <Route
             path="/predict"
             element={
