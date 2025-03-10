@@ -10,6 +10,8 @@ import AuthPage from './pages/AuthPage';
 import ProfilePage from './pages/ProfilePage';
 import AdminPage from './pages/AdminPage';
 import DoctorPage from './pages/DoctorPage';
+import PatientDetail from './components/doctor/PatientDetail';
+import DoctorRoute from './components/doctor/DoctorRoute';
 import { useAuthStore } from './stores/authStore';
 
 const App: React.FC = () => {
@@ -28,7 +30,16 @@ const App: React.FC = () => {
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/doctor" element={<DoctorPage />} />
-          <Route path="/doctor/patient/:patientId" element={<DoctorPage />} />
+          <Route 
+            path="/patient/:patientId" 
+            element={
+              <RequireAuth>
+                <DoctorRoute>
+                  <PatientDetail />
+                </DoctorRoute>
+              </RequireAuth>
+            } 
+          />
           <Route
             path="/predict"
             element={

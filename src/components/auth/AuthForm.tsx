@@ -15,6 +15,10 @@ interface FormData {
   gender?: string;
   phoneNumber?: string;
   role?: UserRole;
+  specialization?: string;
+  licenseNumber?: string;
+  yearsOfExperience?: string;
+  clinicAddress?: string;
 }
 
 const AuthForm: React.FC = () => {
@@ -33,7 +37,11 @@ const AuthForm: React.FC = () => {
     dateOfBirth: '',
     gender: '',
     phoneNumber: '',
-    role: 'patient'
+    role: 'patient',
+    specialization: '',
+    licenseNumber: '',
+    yearsOfExperience: '',
+    clinicAddress: ''
   });
 
   const validateField = (name: string, value: string) => {
@@ -45,6 +53,14 @@ const AuthForm: React.FC = () => {
           return 'Please enter your date of birth';
         case 'phoneNumber':
           return 'Please enter your phone number';
+        case 'specialization':
+          return 'Please enter your specialization';
+        case 'licenseNumber':
+          return 'Please enter your medical license number';
+        case 'yearsOfExperience':
+          return 'Please enter your years of experience';
+        case 'clinicAddress':
+          return 'Please enter your clinic address';
         default:
           return 'This field is required';
       }
@@ -92,6 +108,18 @@ const AuthForm: React.FC = () => {
         
         if (age < 18 || (age === 18 && monthDiff < 0)) {
           return 'You must be at least 18 years old';
+        }
+        break;
+      case 'licenseNumber':
+        const licenseRegex = /^\d{6,}$/;
+        if (!licenseRegex.test(value)) {
+          return 'Please enter a valid license number (minimum 6 digits)';
+        }
+        break;
+      case 'yearsOfExperience':
+        const years = parseInt(value);
+        if (isNaN(years) || years < 0 || years > 60) {
+          return 'Please enter a valid number of years (0-60)';
         }
         break;
     }
@@ -159,10 +187,46 @@ const AuthForm: React.FC = () => {
     }
 
     if (mode === 'signup') {
+      // Mark all fields as touched to show validation errors
+      const allFields = ['email', 'password', 'confirmPassword', 'fullName', 'dateOfBirth', 
+                        'gender', 'phoneNumber', 'role'];
+      
+      if (formData.role === 'doctor') {
+        allFields.push('specialization', 'licenseNumber', 'yearsOfExperience', 'clinicAddress');
+      }
+      
+      allFields.forEach(field => {
+        setTouched(prev => ({ ...prev, [field]: true }));
+      });
+
+      // Check required fields
       if (!formData.confirmPassword || !formData.fullName || !formData.dateOfBirth || 
           !formData.gender || !formData.phoneNumber || !formData.role) {
         toast.error('Please fill in all required fields');
         return;
+      }
+
+      // Additional validation for doctor role
+      if (formData.role === 'doctor') {
+        if (!formData.specialization || !formData.licenseNumber || 
+            !formData.yearsOfExperience || !formData.clinicAddress) {
+          toast.error('Please fill in all required doctor information');
+          return;
+        }
+
+        // Validate license number
+        const licenseRegex = /^\d{6,}$/;
+        if (!licenseRegex.test(formData.licenseNumber)) {
+          toast.error('Please enter a valid license number');
+          return;
+        }
+
+        // Validate years of experience
+        const years = parseInt(formData.yearsOfExperience);
+        if (isNaN(years) || years < 0 || years > 60) {
+          toast.error('Please enter a valid number of years of experience');
+          return;
+        }
       }
       
       if (formData.password !== formData.confirmPassword) {
@@ -176,9 +240,9 @@ const AuthForm: React.FC = () => {
         return;
       }
 
-      const phoneRegex = /^\+?[\d\s-]{8,}$/;
+      const phoneRegex = /^01[0125][0-9]{8}$/;
       if (!phoneRegex.test(formData.phoneNumber)) {
-        toast.error('Please enter a valid phone number');
+        toast.error('Please enter a valid Egyptian phone number');
         return;
       }
     }
@@ -194,7 +258,13 @@ const AuthForm: React.FC = () => {
           dateOfBirth: formData.dateOfBirth || '',
           gender: formData.gender || '',
           phoneNumber: formData.phoneNumber || '',
-          role: formData.role || 'patient'
+          role: formData.role || 'patient',
+          ...(formData.role === 'doctor' && {
+            specialization: formData.specialization,
+            licenseNumber: formData.licenseNumber,
+            yearsOfExperience: formData.yearsOfExperience,
+            clinicAddress: formData.clinicAddress
+          })
         });
         toast.success('Account created successfully!');
       } else {
@@ -330,6 +400,25 @@ const AuthForm: React.FC = () => {
                 { value: 'Female', label: 'Female' }
               ])}
               {renderInput('phoneNumber', 'Phone Number', 'tel', <Phone className="w-4 h-4 text-gray-500" />)}
+              
+              {formData.role === 'doctor' && (
+                <>
+                  {renderSelect('specialization', 'Specialization', <User className="w-4 h-4 text-gray-500" />, [
+                    { value: 'Cardiologist', label: 'Cardiologist' },
+                    { value: 'Dermatologist', label: 'Dermatologist' },
+                    { value: 'Endocrinologist', label: 'Endocrinologist' },
+                    { value: 'Neurologist', label: 'Neurologist' },
+                    { value: 'Oncologist', label: 'Oncologist' },
+                    { value: 'Pediatrician', label: 'Pediatrician' },
+                    { value: 'Psychiatrist', label: 'Psychiatrist' },
+                    { value: 'Surgeon', label: 'Surgeon' },
+                    { value: 'Other', label: 'Other' }
+                  ])}
+                  {renderInput('licenseNumber', 'Medical License Number', 'text', <Lock className="w-4 h-4 text-gray-500" />)}
+                  {renderInput('yearsOfExperience', 'Years of Experience', 'number', <Calendar className="w-4 h-4 text-gray-500" />, 'Enter years of experience')}
+                  {renderInput('clinicAddress', 'Clinic Address', 'text', <User className="w-4 h-4 text-gray-500" />, 'Enter your clinic address')}
+                </>
+              )}
             </>
           )}
 
