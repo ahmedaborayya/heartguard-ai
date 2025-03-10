@@ -42,7 +42,7 @@ HeartGuard AI is a comprehensive healthcare application that leverages machine l
 ### Backend Setup
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/heartguard-ai.git
+git clone https://github.com/ahmedaborayya/heartguard-ai.git
 cd heartguard-ai/backend
 ```
 
