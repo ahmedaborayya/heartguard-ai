@@ -1,8 +1,11 @@
 import { create } from 'zustand';
 
+export type UserRole = 'patient' | 'doctor' | 'admin';
+
 interface User {
   id: string;
   email: string;
+  role: UserRole;
   created_at: string;
 }
 
@@ -13,11 +16,13 @@ interface SignUpData {
   dateOfBirth: string;
   gender: string;
   phoneNumber: string;
+  role: UserRole;
 }
 
 interface AuthState {
   user: User | null;
   isAdmin: boolean;
+  isDoctor: boolean;
   loading: boolean;
   checkAuth: () => void;
   setUser: (user: User | null) => void;
@@ -30,12 +35,14 @@ interface AuthState {
 const MOCK_USER: User = {
   id: 'user-123',
   email: 'user@example.com',
+  role: 'patient',
   created_at: new Date().toISOString()
 };
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isAdmin: false,
+  isDoctor: false,
   loading: true,
   
   checkAuth: () => {
@@ -44,17 +51,27 @@ export const useAuthStore = create<AuthState>((set) => ({
     if (storedUser) {
       try {
         const user = JSON.parse(storedUser);
-        set({ user, loading: false, isAdmin: user.email === 'admin@example.com' });
+        set({ 
+          user, 
+          loading: false, 
+          isAdmin: user.role === 'admin',
+          isDoctor: user.role === 'doctor'
+        });
       } catch (error) {
         localStorage.removeItem('user');
-        set({ user: null, loading: false, isAdmin: false });
+        set({ user: null, loading: false, isAdmin: false, isDoctor: false });
       }
     } else {
       set({ loading: false });
     }
   },
   
-  setUser: (user) => set({ user, loading: false, isAdmin: user?.email === 'admin@example.com' }),
+  setUser: (user) => set({ 
+    user, 
+    loading: false, 
+    isAdmin: user?.role === 'admin',
+    isDoctor: user?.role === 'doctor'
+  }),
   
   signUp: async (data: SignUpData) => {
     // This would be replaced with your actual API call
@@ -70,10 +87,16 @@ export const useAuthStore = create<AuthState>((set) => ({
       setTimeout(() => {
         const newUser = {
           ...MOCK_USER,
-          email: data.email
+          email: data.email,
+          role: data.role
         };
         localStorage.setItem('user', JSON.stringify(newUser));
-        set({ user: newUser, loading: false, isAdmin: newUser.email === 'admin@example.com' });
+        set({ 
+          user: newUser, 
+          loading: false, 
+          isAdmin: newUser.role === 'admin',
+          isDoctor: newUser.role === 'doctor'
+        });
         resolve();
       }, 1000);
     });
@@ -91,13 +114,23 @@ export const useAuthStore = create<AuthState>((set) => ({
     // Simulate API call
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        // For demo purposes, any email/password combination works
+        // For demo purposes, determine role based on email domain
+        let role: UserRole = 'patient';
+        if (email.endsWith('@admin.com')) role = 'admin';
+        else if (email.endsWith('@doctor.com')) role = 'doctor';
+
         const user = {
           ...MOCK_USER,
-          email
+          email,
+          role
         };
         localStorage.setItem('user', JSON.stringify(user));
-        set({ user, loading: false, isAdmin: email === 'admin@example.com' });
+        set({ 
+          user, 
+          loading: false, 
+          isAdmin: role === 'admin',
+          isDoctor: role === 'doctor'
+        });
         resolve();
       }, 1000);
     });
@@ -111,7 +144,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     return new Promise((resolve) => {
       setTimeout(() => {
         localStorage.removeItem('user');
-        set({ user: null, loading: false, isAdmin: false });
+        set({ user: null, loading: false, isAdmin: false, isDoctor: false });
         resolve();
       }, 500);
     });

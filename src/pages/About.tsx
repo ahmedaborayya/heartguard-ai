@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, Brain, Activity, Shield, Users, BarChart3, Check, ArrowRight } from 'lucide-react';
+import { Heart, Brain, Activity, Shield, Users, BarChart3, Check, ArrowRight, TrendingUp, Award, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -33,6 +33,39 @@ const TechnologyCard: React.FC<{ icon: React.ElementType; title: string; descrip
     </div>
     <h3 className="mb-2 text-xl font-semibold text-gray-900">{title}</h3>
     <p className="text-gray-600">{description}</p>
+  </div>
+);
+
+interface StatCardProps {
+  number: string;
+  label: string;
+  description: string;
+  icon: React.ElementType;
+  trend?: {
+    value: number;
+    isPositive: boolean;
+  };
+}
+
+const StatCard: React.FC<StatCardProps> = ({ number, label, description, icon: Icon, trend }) => (
+  <div className="group relative overflow-hidden rounded-2xl bg-white p-8 shadow-lg transition-all duration-300 hover:shadow-xl">
+    <div className="absolute -right-4 -top-4 h-32 w-32 rounded-full bg-gradient-to-br from-blue-500/10 to-purple-500/10 transition-transform duration-300 group-hover:scale-150" />
+    <div className="relative">
+      <div className="mb-4 inline-flex rounded-xl bg-blue-50 p-3 text-blue-600">
+        <Icon className="h-6 w-6" />
+      </div>
+      <div className="mb-2 flex items-end gap-2">
+        <div className="text-5xl font-bold text-blue-600">{number}</div>
+        {trend && (
+          <div className={`mb-2 flex items-center gap-1 text-sm ${trend.isPositive ? 'text-green-500' : 'text-red-500'}`}>
+            <TrendingUp className={`h-4 w-4 ${!trend.isPositive && 'rotate-180'}`} />
+            <span>{trend.value}%</span>
+          </div>
+        )}
+      </div>
+      <p className="text-lg font-medium text-gray-900">{label}</p>
+      <p className="mt-1 text-sm text-gray-600">{description}</p>
+    </div>
   </div>
 );
 
@@ -154,22 +187,49 @@ const About: React.FC = () => {
 
       {/* Stats Section */}
       <section className="relative overflow-hidden py-24">
-        <div className="absolute inset-0 bg-blue-600/5" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50" />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 gap-12 md:grid-cols-3">
-            {[
-              { number: '95%', label: 'Prediction Accuracy' },
-              { number: '10k+', label: 'Predictions Made' },
-              { number: '50+', label: 'Healthcare Partners' }
-            ].map((stat) => (
-              <div key={stat.label} className="group relative overflow-hidden rounded-2xl bg-white p-8 text-center shadow-lg transition-all duration-300 hover:shadow-xl">
-                <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-blue-500/10 transition-transform duration-300 group-hover:scale-150" />
-                <div className="relative">
-                  <div className="mb-2 text-5xl font-bold text-blue-600">{stat.number}</div>
-                  <p className="text-gray-600">{stat.label}</p>
-                </div>
-              </div>
-            ))}
+          <div className="mb-16 text-center">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-sm text-blue-700">
+              <Activity className="h-4 w-4" />
+              Our Impact
+            </div>
+            <h2 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">
+              Making a Difference in Healthcare
+            </h2>
+            <p className="mx-auto max-w-2xl text-lg text-gray-600">
+              Our AI-powered platform has helped thousands of healthcare providers deliver better care through early detection and prevention.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              icon={Award}
+              number="95%"
+              label="Prediction Accuracy"
+              description="Validated through clinical trials and real-world applications"
+              trend={{ value: 5, isPositive: true }}
+            />
+            <StatCard
+              icon={Users}
+              number="10k+"
+              label="Active Users"
+              description="Healthcare professionals and patients trust our platform"
+              trend={{ value: 12, isPositive: true }}
+            />
+            <StatCard
+              icon={Heart}
+              number="85%"
+              label="Early Detection"
+              description="Of potential heart issues identified before critical stage"
+              trend={{ value: 8, isPositive: true }}
+            />
+            <StatCard
+              icon={Clock}
+              number="24/7"
+              label="Monitoring"
+              description="Continuous health tracking and real-time risk assessment"
+            />
           </div>
         </div>
       </section>
