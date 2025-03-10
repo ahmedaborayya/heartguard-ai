@@ -1,85 +1,158 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Github, Twitter, Linkedin } from 'lucide-react';
+import {
+  Box,
+  Container,
+  Typography,
+  Grid,
+  IconButton,
+  Avatar,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
+  useTheme,
+} from '@mui/material';
+import {
+  Favorite as HeartIcon,
+  GitHub as GitHubIcon,
+  Twitter as TwitterIcon,
+  LinkedIn as LinkedInIcon,
+} from '@mui/icons-material';
 
 const FooterLink = ({ to, children }: { to: string; children: React.ReactNode }) => (
-  <Link 
-    to={to} 
-    className="text-gray-500 hover:text-blue-600 transition-colors"
+  <Link
+    to={to}
+    style={{ textDecoration: 'none', color: 'inherit' }}
   >
-    {children}
+    <Typography
+      variant="body2"
+      sx={{
+        '&:hover': {
+          color: 'primary.main',
+        },
+      }}
+    >
+      {children}
+    </Typography>
   </Link>
 );
 
 const SocialIcon = ({ href, icon: Icon }: { href: string; icon: React.ElementType }) => (
-  <a 
+  <IconButton
     href={href}
     target="_blank"
     rel="noopener noreferrer"
-    className="bg-white/80 p-3 rounded-xl text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-all shadow-sm"
+    sx={{
+      bgcolor: 'background.paper',
+      '&:hover': {
+        bgcolor: 'primary.light',
+        color: 'primary.main',
+      },
+    }}
   >
-    <Icon className="w-5 h-5" />
-  </a>
+    <Icon />
+  </IconButton>
 );
 
 const Footer: React.FC = () => {
+  const theme = useTheme();
+
   return (
-    <footer className="bg-gray-50">
-      <div className="max-w-7xl mx-auto">
+    <Box component="footer" sx={{ bgcolor: 'grey.50' }}>
+      <Container maxWidth="xl">
         {/* Main Footer Content */}
-        <div className="px-4 sm:px-6 lg:px-8 py-16 border-b border-gray-200">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+        <Box py={8} borderBottom={1} borderColor="divider">
+          <Grid container spacing={6}>
             {/* Brand Section */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center">
-                  <Heart className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-gray-900">HeartGuard</span>
-              </div>
-              <p className="text-gray-600 leading-relaxed">
+            <Grid item xs={12} md={4}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                <Avatar sx={{ bgcolor: 'primary.main', width: 40, height: 40 }}>
+                  <HeartIcon />
+                </Avatar>
+                <Typography variant="h5" fontWeight="bold" color="text.primary">
+                  HeartGuard
+                </Typography>
+              </Box>
+              <Typography
+                variant="body1"
+                color="text.secondary"
+                sx={{ mb: 3 }}
+              >
                 Empowering healthcare with AI-driven heart disease prediction technology.
-              </p>
-              <div className="flex items-center gap-4">
-                <SocialIcon href="https://github.com" icon={Github} />
-                <SocialIcon href="https://twitter.com" icon={Twitter} />
-                <SocialIcon href="https://linkedin.com" icon={Linkedin} />
-              </div>
-            </div>
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <SocialIcon href="https://github.com" icon={GitHubIcon} />
+                <SocialIcon href="https://twitter.com" icon={TwitterIcon} />
+                <SocialIcon href="https://linkedin.com" icon={LinkedInIcon} />
+              </Box>
+            </Grid>
 
             {/* Navigation Section */}
-            <div className="md:flex md:justify-center">
-              <div>
-                <h3 className="text-gray-900 font-semibold mb-6">Quick Links</h3>
-                <ul className="space-y-4">
-                  <li><FooterLink to="/">Home</FooterLink></li>
-                  <li><FooterLink to="/about">About</FooterLink></li>
-                  <li><FooterLink to="/predict">Assessment</FooterLink></li>
-                </ul>
-              </div>
-            </div>
+            <Grid item xs={12} md={4}>
+              <Box display="flex" justifyContent={{ xs: 'flex-start', md: 'center' }}>
+                <Box>
+                  <Typography
+                    variant="subtitle1"
+                    color="text.primary"
+                    fontWeight="bold"
+                    gutterBottom
+                  >
+                    Quick Links
+                  </Typography>
+                  <List disablePadding>
+                    <ListItem disablePadding sx={{ pb: 1 }}>
+                      <FooterLink to="/">Home</FooterLink>
+                    </ListItem>
+                    <ListItem disablePadding sx={{ pb: 1 }}>
+                      <FooterLink to="/about">About</FooterLink>
+                    </ListItem>
+                    <ListItem disablePadding>
+                      <FooterLink to="/predict">Assessment</FooterLink>
+                    </ListItem>
+                  </List>
+                </Box>
+              </Box>
+            </Grid>
 
             {/* Legal Section */}
-            <div className="md:flex md:justify-end">
-              <div>
-                <h3 className="text-gray-900 font-semibold mb-6">Legal</h3>
-                <ul className="space-y-4">
-                  <li><FooterLink to="/privacy">Privacy Policy</FooterLink></li>
-                  <li><FooterLink to="/terms">Terms of Service</FooterLink></li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
+            <Grid item xs={12} md={4}>
+              <Box display="flex" justifyContent={{ xs: 'flex-start', md: 'flex-end' }}>
+                <Box>
+                  <Typography
+                    variant="subtitle1"
+                    color="text.primary"
+                    fontWeight="bold"
+                    gutterBottom
+                  >
+                    Legal
+                  </Typography>
+                  <List disablePadding>
+                    <ListItem disablePadding sx={{ pb: 1 }}>
+                      <FooterLink to="/privacy">Privacy Policy</FooterLink>
+                    </ListItem>
+                    <ListItem disablePadding>
+                      <FooterLink to="/terms">Terms of Service</FooterLink>
+                    </ListItem>
+                  </List>
+                </Box>
+              </Box>
+            </Grid>
+          </Grid>
+        </Box>
 
         {/* Bottom Bar */}
-        <div className="px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center text-gray-500">
+        <Box py={3}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            align="center"
+          >
             © {new Date().getFullYear()} HeartGuard AI. All rights reserved.
-          </div>
-        </div>
-      </div>
-    </footer>
+          </Typography>
+        </Box>
+      </Container>
+    </Box>
   );
 };
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Box } from '@mui/material';
 import Header from './Header';
 import Footer from './Footer';
 
@@ -8,13 +9,27 @@ type LayoutProps = {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="min-h-screen flex flex-col">
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        bgcolor: 'background.default'
+      }}
+    >
       <Header />
-      <main className="flex-grow bg-gray-50">
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          bgcolor: 'grey.50',
+          py: 2
+        }}
+      >
         {children}
-      </main>
+      </Box>
       <Footer />
-    </div>
+    </Box>
   );
 };
 

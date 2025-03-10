@@ -1,14 +1,35 @@
 import React from 'react';
-import { Bell, Check, Trash2, Info, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import {
+  Box,
+  Paper,
+  Typography,
+  IconButton,
+  Button,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  ListItemSecondaryAction,
+  Divider,
+  Popover,
+} from '@mui/material';
+import {
+  Info as InfoIcon,
+  CheckCircle as CheckCircleIcon,
+  Warning as WarningIcon,
+  Error as ErrorIcon,
+  Check as CheckIcon,
+  Delete as DeleteIcon,
+} from '@mui/icons-material';
 import { useNotificationStore, type Notification } from '../../stores/notificationStore';
 import { formatDistanceToNow } from 'date-fns';
 
 const NotificationIcon: React.FC<{ type: Notification['type'] }> = ({ type }) => {
   const icons = {
-    info: <Info className="w-4 h-4 text-blue-500" />,
-    success: <CheckCircle className="w-4 h-4 text-green-500" />,
-    warning: <AlertCircle className="w-4 h-4 text-yellow-500" />,
-    error: <XCircle className="w-4 h-4 text-red-500" />
+    info: <InfoIcon color="info" fontSize="small" />,
+    success: <CheckCircleIcon color="success" fontSize="small" />,
+    warning: <WarningIcon color="warning" fontSize="small" />,
+    error: <ErrorIcon color="error" fontSize="small" />
   };
   return icons[type];
 };
@@ -30,80 +51,114 @@ const NotificationDropdown: React.FC<{ isOpen: boolean; onClose: () => void }> =
   if (!isOpen) return null;
 
   return (
-    <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50">
+    <Paper
+      elevation={4}
+      sx={{
+        position: 'absolute',
+        right: 0,
+        mt: 1,
+        width: 320,
+        maxWidth: '100%',
+        borderRadius: 2,
+        overflow: 'hidden',
+        zIndex: 'tooltip',
+      }}
+    >
       {/* Header */}
-      <div className="p-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
-          <div className="flex items-center gap-2">
-            <button
+      <Box
+        sx={{
+          p: 2,
+          borderBottom: 1,
+          borderColor: 'divider',
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="h6">Notifications</Typography>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              size="small"
+              startIcon={<CheckIcon />}
               onClick={markAllAsRead}
-              className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+              sx={{ textTransform: 'none' }}
             >
-              <Check className="w-4 h-4" />
               Mark all read
-            </button>
-            <button
+            </Button>
+            <Button
+              size="small"
+              startIcon={<DeleteIcon />}
               onClick={clearAll}
-              className="text-sm text-gray-600 hover:text-gray-700 flex items-center gap-1"
+              sx={{ textTransform: 'none' }}
             >
-              <Trash2 className="w-4 h-4" />
               Clear all
-            </button>
-          </div>
-        </div>
-      </div>
+            </Button>
+          </Box>
+        </Box>
+      </Box>
 
       {/* Notifications List */}
-      <div className="max-h-96 overflow-y-auto">
+      <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
         {notifications.length === 0 ? (
-          <div className="p-4 text-center text-gray-500">
-            No notifications
-          </div>
+          <Box sx={{ p: 3, textAlign: 'center' }}>
+            <Typography color="text.secondary">
+              No notifications
+            </Typography>
+          </Box>
         ) : (
-          <div className="divide-y divide-gray-100">
-            {notifications.map((notification) => (
-              <div
-                key={notification.id}
-                className={`
-                  p-4 hover:bg-gray-50 transition-colors
-                  ${notification.read ? 'bg-white' : 'bg-blue-50'}
-                `}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0">
+          <List disablePadding>
+            {notifications.map((notification, index) => (
+              <React.Fragment key={notification.id}>
+                {index > 0 && <Divider />}
+                <ListItem
+                  sx={{
+                    bgcolor: notification.read ? 'background.paper' : 'action.hover',
+                    '&:hover': {
+                      bgcolor: 'action.hover',
+                    },
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: 40 }}>
                     <NotificationIcon type={notification.type} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-900">{notification.message}</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {formatDistanceToNow(notification.createdAt, { addSuffix: true })}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {!notification.read && (
-                      <button
-                        onClick={() => handleMarkAsRead(notification.id)}
-                        className="text-blue-600 hover:text-blue-700"
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={notification.message}
+                    secondary={formatDistanceToNow(notification.createdAt, { addSuffix: true })}
+                    primaryTypographyProps={{
+                      variant: 'body2',
+                      color: 'text.primary',
+                    }}
+                    secondaryTypographyProps={{
+                      variant: 'caption',
+                      color: 'text.secondary',
+                    }}
+                  />
+                  <ListItemSecondaryAction>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      {!notification.read && (
+                        <IconButton
+                          size="small"
+                          onClick={() => handleMarkAsRead(notification.id)}
+                          color="primary"
+                        >
+                          <CheckIcon fontSize="small" />
+                        </IconButton>
+                      )}
+                      <IconButton
+                        size="small"
+                        onClick={() => handleRemove(notification.id)}
+                        color="default"
                       >
-                        <Check className="w-4 h-4" />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleRemove(notification.id)}
-                      className="text-gray-400 hover:text-gray-600"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  </ListItemSecondaryAction>
+                </ListItem>
+              </React.Fragment>
             ))}
-          </div>
+          </List>
         )}
-      </div>
-    </div>
+      </Box>
+    </Paper>
   );
 };
 
-export default NotificationDropdown; 
+export default NotificationDropdown;

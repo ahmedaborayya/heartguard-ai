@@ -1,28 +1,40 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Users, 
-  UserPlus, 
-  Search, 
-  Filter, 
-  Heart, 
-  Activity, 
-  AlertCircle,
-  Clock,
-  ChevronRight,
-  BarChart3
-} from 'lucide-react';
-import { Link } from 'react-router-dom';
-import Card from '../ui/Card';
-import Button from '../ui/Button';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Grid,
+  TextField,
+  Button,
+  Chip,
+  Avatar,
+  CircularProgress,
+  Alert,
+  Container,
+  IconButton,
+  Stack,
+  Paper,
+} from '@mui/material';
+import {
+  Search as SearchIcon,
+  FilterList as FilterListIcon,
+  Person as PersonIcon,
+  Assessment as AssessmentIcon,
+  TrendingUp as TrendingUpIcon,
+  Warning as WarningIcon,
+} from '@mui/icons-material';
 import { useAuthStore } from '../../stores/authStore';
 import { useAssessmentStore } from '../../stores/assessmentStore';
-import { Patient, DoctorStats } from '../../types';
+import { Patient, Assessment } from '../../types';
 
 const DoctorDashboard: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterRisk, setFilterRisk] = useState<'All' | 'High' | 'Medium' | 'Low'>('All');
+  const navigate = useNavigate();
   const { user } = useAuthStore();
   const { assessments, loading, error, fetchDoctorAssessments } = useAssessmentStore();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [riskFilter, setRiskFilter] = useState<string[]>([]);
 
   useEffect(() => {
     if (user?.id) {
@@ -30,243 +42,224 @@ const DoctorDashboard: React.FC = () => {
     }
   }, [user?.id, fetchDoctorAssessments]);
 
-  // Mock data - replace with actual API calls
-  const mockPatients: Patient[] = [
+  const patients: Patient[] = [
     {
       id: '1',
       name: 'John Doe',
-      email: 'john@example.com',
       age: 45,
       gender: 'Male',
-      phoneNumber: '+1 234 567 8900',
-      lastAssessment: '2024-03-15',
-      nextCheckup: '2024-04-15',
-      riskLevel: 'High',
-      doctorId: user?.id
+      phoneNumber: '+1234567890',
+      email: 'john@example.com',
+      riskLevel: 'high',
+      doctorId: user?.id || '',
     },
-    {
-      id: '2',
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      age: 35,
-      gender: 'Female',
-      phoneNumber: '+1 234 567 8901',
-      lastAssessment: '2024-03-10',
-      nextCheckup: '2024-05-10',
-      riskLevel: 'Low',
-      doctorId: user?.id
-    },
-    {
-      id: '3',
-      name: 'Mike Johnson',
-      email: 'mike@example.com',
-      age: 52,
-      gender: 'Male',
-      phoneNumber: '+1 234 567 8902',
-      lastAssessment: '2024-03-12',
-      nextCheckup: '2024-04-12',
-      riskLevel: 'Medium',
-      doctorId: user?.id
-    },
+    // ... Add more mock patients as needed
   ];
 
-  const filteredPatients = mockPatients
-    .filter(patient => 
-      patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient.email.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .filter(patient => filterRisk === 'All' || patient.riskLevel === filterRisk);
+  const filteredPatients = patients.filter(patient => {
+    const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      patient.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRisk = riskFilter.length === 0 || riskFilter.includes(patient.riskLevel);
+    return matchesSearch && matchesRisk;
+  });
 
-  const getRiskColor = (level: Patient['riskLevel']) => {
-    switch (level) {
-      case 'High':
-        return 'text-red-600 bg-red-50';
-      case 'Medium':
-        return 'text-yellow-600 bg-yellow-50';
-      case 'Low':
-        return 'text-green-600 bg-green-50';
+  const getRiskColor = (risk: string) => {
+    switch (risk.toLowerCase()) {
+      case 'high':
+        return 'error';
+      case 'medium':
+        return 'warning';
+      case 'low':
+        return 'success';
+      default:
+        return 'default';
     }
   };
 
-  const stats: DoctorStats = {
-    totalPatients: mockPatients.length,
-    highRiskPatients: mockPatients.filter(p => p.riskLevel === 'High').length,
-    assessmentsToday: assessments.filter(a => 
-      new Date(a.date).toDateString() === new Date().toDateString()
-    ).length,
-    pendingReviews: assessments.filter(a => a.status === 'pending').length
+  const stats = {
+    totalPatients: patients.length,
+    highRiskPatients: patients.filter(p => p.riskLevel === 'high').length,
+    pendingAssessments: assessments.filter(a => !a.doctorReview).length,
+    completedAssessments: assessments.filter(a => a.doctorReview).length,
   };
-
-  const statsDisplay = [
-    { label: 'Total Patients', value: stats.totalPatients, icon: Users, color: 'blue' },
-    { label: 'High Risk', value: stats.highRiskPatients, icon: AlertCircle, color: 'red' },
-    { label: 'Assessments Today', value: stats.assessmentsToday, icon: Activity, color: 'green' },
-    { label: 'Pending Reviews', value: stats.pendingReviews, icon: Clock, color: 'yellow' },
-  ];
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center h-64">
-            <p className="text-gray-600">Loading dashboard...</p>
-          </div>
-        </div>
-      </div>
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+        <CircularProgress />
+      </Box>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center h-64">
-            <p className="text-red-600">Error: {error}</p>
-          </div>
-        </div>
-      </div>
+      <Box m={2}>
+        <Alert severity="error">{error}</Alert>
+      </Box>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Doctor Dashboard</h1>
-          <p className="text-gray-600">Manage your patients and assessments</p>
-        </div>
+    <Container maxWidth="xl">
+      <Box py={4}>
+        <Typography variant="h4" gutterBottom>
+          Doctor Dashboard
+        </Typography>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {statsDisplay.map((stat) => (
-            <Card key={stat.label} className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">{stat.label}</p>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                </div>
-                <div className={`p-3 rounded-xl bg-${stat.color}-50 text-${stat.color}-600`}>
-                  <stat.icon className="w-6 h-6" />
-                </div>
-              </div>
+        {/* Stats Cards */}
+        <Grid container spacing={3} mb={4}>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card>
+              <CardContent>
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <PersonIcon color="primary" />
+                  <Box>
+                    <Typography variant="h5">{stats.totalPatients}</Typography>
+                    <Typography color="textSecondary">Total Patients</Typography>
+                  </Box>
+                </Stack>
+              </CardContent>
             </Card>
-          ))}
-        </div>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card>
+              <CardContent>
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <WarningIcon color="error" />
+                  <Box>
+                    <Typography variant="h5">{stats.highRiskPatients}</Typography>
+                    <Typography color="textSecondary">High Risk Patients</Typography>
+                  </Box>
+                </Stack>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card>
+              <CardContent>
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <AssessmentIcon color="warning" />
+                  <Box>
+                    <Typography variant="h5">{stats.pendingAssessments}</Typography>
+                    <Typography color="textSecondary">Pending Reviews</Typography>
+                  </Box>
+                </Stack>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card>
+              <CardContent>
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <TrendingUpIcon color="success" />
+                  <Box>
+                    <Typography variant="h5">{stats.completedAssessments}</Typography>
+                    <Typography color="textSecondary">Completed Reviews</Typography>
+                  </Box>
+                </Stack>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
 
-        {/* Patient Management */}
-        <Card>
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <h2 className="text-xl font-semibold text-gray-900">Patient List</h2>
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                  <input
-                    type="text"
-                    placeholder="Search patients..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <select
-                  value={filterRisk}
-                  onChange={(e) => setFilterRisk(e.target.value as any)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="All">All Risks</option>
-                  <option value="High">High Risk</option>
-                  <option value="Medium">Medium Risk</option>
-                  <option value="Low">Low Risk</option>
-                </select>
+        {/* Search and Filter */}
+        <Paper sx={{ p: 2, mb: 4 }}>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                variant="outlined"
+                placeholder="Search patients..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                InputProps={{
+                  startAdornment: <SearchIcon color="action" sx={{ mr: 1 }} />,
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Stack direction="row" spacing={1}>
                 <Button
-                  variant="primary"
-                  className="flex items-center gap-2"
+                  variant={riskFilter.includes('high') ? 'contained' : 'outlined'}
+                  color="error"
+                  onClick={() => setRiskFilter(prev => 
+                    prev.includes('high') 
+                      ? prev.filter(r => r !== 'high')
+                      : [...prev, 'high']
+                  )}
                 >
-                  <UserPlus className="w-5 h-5" />
-                  Add Patient
+                  High Risk
                 </Button>
-              </div>
-            </div>
-          </div>
+                <Button
+                  variant={riskFilter.includes('medium') ? 'contained' : 'outlined'}
+                  color="warning"
+                  onClick={() => setRiskFilter(prev => 
+                    prev.includes('medium') 
+                      ? prev.filter(r => r !== 'medium')
+                      : [...prev, 'medium']
+                  )}
+                >
+                  Medium Risk
+                </Button>
+                <Button
+                  variant={riskFilter.includes('low') ? 'contained' : 'outlined'}
+                  color="success"
+                  onClick={() => setRiskFilter(prev => 
+                    prev.includes('low') 
+                      ? prev.filter(r => r !== 'low')
+                      : [...prev, 'low']
+                  )}
+                >
+                  Low Risk
+                </Button>
+              </Stack>
+            </Grid>
+          </Grid>
+        </Paper>
 
-          {/* Patient List */}
-          <div className="divide-y divide-gray-200">
-            {filteredPatients.map((patient) => (
-              <Link
-                key={patient.id}
-                to={`/patient/${patient.id}`}
-                className="block p-6 hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                      <Users className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900">{patient.name}</h3>
-                      <p className="text-sm text-gray-500">{patient.email}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-6">
-                    <div className="text-right">
-                      <p className="text-sm text-gray-600">Last Assessment</p>
-                      <p className="font-medium">{new Date(patient.lastAssessment).toLocaleDateString()}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-600">Next Checkup</p>
-                      <p className="font-medium">{new Date(patient.nextCheckup).toLocaleDateString()}</p>
-                    </div>
-                    <div className={`px-4 py-2 rounded-full text-sm font-medium ${getRiskColor(patient.riskLevel)}`}>
-                      {patient.riskLevel} Risk
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-gray-400" />
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </Card>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Upcoming Appointments</h3>
-              <Clock className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="space-y-4">
-              {/* Add appointment list here */}
-              <p className="text-gray-600">No upcoming appointments</p>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Risk Distribution</h3>
-              <BarChart3 className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="space-y-4">
-              {/* Add risk distribution chart here */}
-              <p className="text-gray-600">Distribution chart coming soon</p>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
-              <Activity className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="space-y-4">
-              {/* Add activity feed here */}
-              <p className="text-gray-600">No recent activity</p>
-            </div>
-          </Card>
-        </div>
-      </div>
-    </div>
+        {/* Patient List */}
+        <Grid container spacing={3}>
+          {filteredPatients.map((patient) => (
+            <Grid item xs={12} md={6} lg={4} key={patient.id}>
+              <Card sx={{ height: '100%' }}>
+                <CardContent>
+                  <Stack direction="row" spacing={2} alignItems="center" mb={2}>
+                    <Avatar>
+                      {patient.name.charAt(0)}
+                    </Avatar>
+                    <Box flex={1}>
+                      <Typography variant="h6">{patient.name}</Typography>
+                      <Typography color="textSecondary">
+                        {patient.age} years • {patient.gender}
+                      </Typography>
+                    </Box>
+                    <Chip
+                      label={patient.riskLevel.toUpperCase()}
+                      color={getRiskColor(patient.riskLevel) as any}
+                      size="small"
+                    />
+                  </Stack>
+                  <Typography variant="body2" paragraph>
+                    Email: {patient.email}
+                  </Typography>
+                  <Typography variant="body2" paragraph>
+                    Phone: {patient.phoneNumber}
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    onClick={() => navigate(`/patient/${patient.id}`)}
+                  >
+                    View Details
+                  </Button>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+    </Container>
   );
 };
 
-export default DoctorDashboard; 
+export default DoctorDashboard;

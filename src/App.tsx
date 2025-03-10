@@ -1,5 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import theme from './theme';
 import Layout from './components/layout/Layout';
 import RequireAuth from './components/auth/RequireAuth';
 import Home from './pages/Home';
@@ -23,44 +26,47 @@ const App: React.FC = () => {
   }, [checkAuth]);
 
   return (
-    <Router>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/doctor" element={<DoctorPage />} />
-          <Route 
-            path="/patient/:patientId" 
-            element={
-              <RequireAuth>
-                <DoctorRoute>
-                  <PatientDetail />
-                </DoctorRoute>
-              </RequireAuth>
-            } 
-          />
-          <Route
-            path="/predict"
-            element={
-              <RequireAuth>
-                <PredictionForm />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <RequireAuth>
-                <ProfilePage />
-              </RequireAuth>
-            }
-          />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-        </Routes>
-      </Layout>
-    </Router>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Router>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/doctor" element={<DoctorPage />} />
+            <Route 
+              path="/patient/:patientId" 
+              element={
+                <RequireAuth>
+                  <DoctorRoute>
+                    <PatientDetail />
+                  </DoctorRoute>
+                </RequireAuth>
+              } 
+            />
+            <Route
+              path="/predict"
+              element={
+                <RequireAuth>
+                  <PredictionForm />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <RequireAuth>
+                  <ProfilePage />
+                </RequireAuth>
+              }
+            />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+          </Routes>
+        </Layout>
+      </Router>
+    </ThemeProvider>
   );
 };
 
